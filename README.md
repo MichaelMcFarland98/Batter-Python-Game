@@ -54,3 +54,5 @@ root                    (project root folder)
 ---
 
 Samuel Witt - wit19011@byui.edu
+Michael McFarland - michaelmcfarland1998@gmail.com
+Brandon McFarland - brandon4cool@gmail.com

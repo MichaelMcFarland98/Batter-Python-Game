@@ -1,9 +1,8 @@
 import random
 from game import constants
 from game.action import Action
-from game import constants
 from game.point import Point
-from game.score import Score
+
 
 class HandleCollisionsAction(Action):
     """A code template for handling collisions. The responsibility of this class of objects is to update the game state when actors collide.
@@ -14,35 +13,44 @@ class HandleCollisionsAction(Action):
 
     def execute(self, cast):
         """Executes the action using the given actors.
-
         Args:
             cast (dict): The game actors {key: tag, value: list}.
         """
-        balls = cast["balls"][0] # there's only one
-        bricks = cast["bricks"]
-        paddle = cast["paddle"][0]# there's only one
-        score = cast['score'][0]# there is only one
+        ball = cast["ball"][0] # there's only one
+        paddles = cast["paddle"]
+        bricks = cast["brick"]
+
+        # Checking if the ball has hit the paddle.
+        for paddle in paddles:
+            if paddle.get_position().equals(ball.get_position()):
+                ball._velocity._y = self._reverse(ball.get_velocity().get_y())
+                break
+        
+        # Checking if the ball has hit any bricks.
         for brick in bricks:
-            if balls.get_position().equals(brick.get_position()) and brick.get_text() == "*"  :
-                balls.set_velocity(balls.get_velocity().horizontal_collision())
+            if brick.get_text() != "" and brick.get_position().equals(ball.get_position()):
+                ball._velocity._y = self._reverse(ball.get_velocity().get_y())
                 brick.set_text("")
-                score.set_score(100)
-                total = score.get_text_score()
-                score.set_text(total)
-            else:
-                pass
+                break
+        
+        # Checking if the ball has hit the bounderies.
+        if ball.get_position().get_x() == constants.MAX_X -1 or ball.get_position().get_x() == 1:
+            ball._velocity._x = self._reverse(ball.get_velocity().get_x())
+        elif ball.get_position().get_y() == 1:
+            ball._velocity._y = self._reverse(ball.get_velocity().get_y())       
+        elif ball.get_position().get_y() == constants.MAX_Y - 1:
+            self.mistake_counter += 1
+            ball.set_position(Point(int(constants.MAX_X/2), int(constants.MAX_Y/2)))
+            ball.set_velocity(Point(1,-1))
+            if self.mistake_counter == constants.MAX_MISTAKES:
+                quit()
+            
 
-        for x in paddle.return_x_list():
-            if (balls.get_position().get_y() == 17) and ((balls.get_position().get_x() -5) < x < (balls.get_position().get_x() +5)) :
-                balls.set_velocity(balls.get_velocity().horizontal_collision())
+    def _reverse(self,velocity):
+        """Flips the passed in x or y velocity. Used to make the ball 'bounce'.
+        Args:
+            velocity: the velocity of the actor.
+        """
 
-
-            # if balls._position.get_y() == pad.get_y():
-            #     balls.set_velocity(balls.get_velocity().horizontal_collision())
-
-        if balls.get_position().get_y() == constants.MAX_Y - 1:
-            quit()
-        if balls.get_position().get_x() == constants.MAX_X - 1 or balls.get_position().get_x() == 1:
-            balls.set_velocity(balls.get_velocity().vertical_collision())
-        if balls.get_position().get_y() == 1:
-            balls.set_velocity(balls.get_velocity().horizontal_collision())
+        velocity = velocity * -1
+        return velocity
